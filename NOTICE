@@ -1,0 +1,30 @@
+uxr-agent-template
+Copyright 2026 Tony Capodagli
+
+This product is licensed under the Apache License, Version 2.0
+(see LICENSE file or http://www.apache.org/licenses/LICENSE-2.0).
+
+This product depends on third-party services and SDKs:
+
+  - Anthropic SDK (Apache 2.0)
+      https://github.com/anthropics/anthropic-sdk-python
+      Used for Claude API calls (personas + SME synthesis).
+
+  - Voyage AI Python SDK (MIT)
+      https://github.com/voyage-ai/voyageai-python
+      Used for corpus embedding (voyage-3 model).
+
+  - Qdrant Client (Apache 2.0)
+      https://github.com/qdrant/qdrant-client
+      Used for vector storage and retrieval.
+
+  - Modal Python SDK (Apache 2.0)
+      https://github.com/modal-labs/modal-client
+      Used for serverless backend deployment.
+
+The methodological framing (3-persona ensemble, Playing-to-Win
+research-proposal cascade, divergence-band classification, anti-
+hallucination drop logic, SME audit gate) was developed by Tony
+Capodagli as part of the uxr-agent research project (2025-2026).
+Forks may use, adapt, and redistribute these patterns under the
+Apache 2.0 license.

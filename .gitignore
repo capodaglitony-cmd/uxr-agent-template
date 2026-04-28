@@ -1,0 +1,53 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+config/profile.yaml          # forks customize this; example checked in instead
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# Modal
+.modal.toml
+
+# Build artifacts
+dist/
+build/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Local corpus uploads (forks ingest these; never check in real practitioner content)
+corpus/*
+!corpus/_sample/
+!corpus/README.md
+
+# Claude Code per-machine settings
+.claude/

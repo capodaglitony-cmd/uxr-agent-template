@@ -1,0 +1,29 @@
+# Pinned versions per Phase 4 lock. Update via dependabot or manual review.
+
+# Web framework for Modal-hosted FastAPI app.
+fastapi==0.115.0
+pydantic==2.9.2
+uvicorn==0.31.0
+
+# LLM provider — Anthropic Claude (personas + SME synthesis).
+anthropic==0.39.0
+
+# Embedding provider — Voyage AI voyage-3 (locked in cloud spec v0.1.2).
+voyageai==0.2.4
+
+# Vector database client — Qdrant Cloud.
+qdrant-client==1.12.1
+
+# Document chunking + ingestion.
+pypdf==5.0.1
+python-docx==1.1.2
+markdown-it-py==3.0.0
+
+# Profile / config loader.
+pyyaml==6.0.2
+
+# Modal SDK (only needed for `modal deploy`; runtime image gets it from Modal itself).
+modal==0.66.0
+
+# HTTP client used by the lifted ensemble code.
+requests==2.32.3

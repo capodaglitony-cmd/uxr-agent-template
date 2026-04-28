@@ -1,0 +1,38 @@
+# config/profile.yaml.example
+#
+# Copy this file to config/profile.yaml and edit. profile.yaml is in
+# .gitignore so your edits stay private to your fork; profile.yaml.example
+# stays in git as the template.
+#
+# These values get substituted into:
+#   - persona system prompts (PM/Designer/Engineer reviewing {{owner.name}}'s portfolio)
+#   - wizard preamble + proposal rationale
+#   - widget header branding
+
+owner:
+  # Your professional name as you'd like it to appear in answers and proposals.
+  name: "Your Name"
+
+  # GitHub handle. Used to gate /admin against unauthorized edits.
+  # Set OWNER_GITHUB_USER=this-handle in Vercel env vars too.
+  github: "your-github-handle"
+
+  # Your specialty / domain framing. Surfaces in some prompts as context
+  # (e.g., "the practitioner specializes in {{owner.specialty}}").
+  specialty: "UX research"
+
+  # One-sentence bio that may appear in widget header or proposal footer.
+  bio_short: "Senior UXR with 8 years across fintech, B2B SaaS, and healthcare."
+
+  # Optional: link to your full portfolio site, LinkedIn, etc.
+  bio_url: "https://your-portfolio.com"
+
+
+branding:
+  # Used as the Vercel project name suggestion + widget wordmark.
+  # Lowercase, hyphens, no spaces.
+  agent_handle: "yn-uxragent"
+
+  # Accent color (CSS-valid). Used for active mode toggle, pill highlights,
+  # and section headers.
+  accent_color: "#3a7ab8"
