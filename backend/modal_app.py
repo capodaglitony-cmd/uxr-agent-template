@@ -62,6 +62,11 @@ secrets = [
     modal.Secret.from_name("anthropic-api-key"),
     modal.Secret.from_name("voyage-api-key"),
     modal.Secret.from_name("qdrant-config"),
+    # admin-token gates /admin/ingest. Generate once with:
+    #   TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+    #   modal secret create admin-token ADMIN_TOKEN="$TOKEN"
+    # Save the token locally; clients pass it as X-Admin-Token header.
+    modal.Secret.from_name("admin-token"),
 ]
 
 
@@ -265,16 +270,34 @@ def fastapi_app():
             raise HTTPException(502, f"Proposal generation failed: {e}")
         return {"status": "ok", "proposal": proposal.to_payload()}
 
-    # ── /admin/ingest (auth-gated by Vercel) ─────────────────────────
+    # ── /admin/ingest (X-Admin-Token gated) ──────────────────────────
+    #
+    # Modal endpoint URL is publicly knowable (it appears in deployment
+    # output and any committed Vercel env-var docs). Without this gate,
+    # anyone hitting the URL could trigger Voyage embedding billing on
+    # the deployer's account. The token check fronts the route until
+    # the v0.4 GitHub OAuth gate lands on the Vercel side.
 
     class IngestBody(BaseModel):
         confirm: bool = False
 
     @api.post("/admin/ingest")
     def admin_ingest(body: IngestBody, request: Request):
-        # Vercel handles GitHub OAuth; this endpoint trusts the caller.
-        # If you expose this Modal URL directly to the internet, add an
-        # X-Admin-Token header check here.
+        expected = os.environ.get("ADMIN_TOKEN")
+        if not expected:
+            raise HTTPException(503, (
+                "ADMIN_TOKEN not configured server-side. The admin-token "
+                "Modal secret is missing or not attached to this function."
+            ))
+        provided = request.headers.get("X-Admin-Token", "")
+        # Constant-time compare to avoid timing oracles.
+        import hmac
+        if not hmac.compare_digest(provided, expected):
+            raise HTTPException(401, (
+                "Missing or invalid X-Admin-Token header. /admin/ingest "
+                "requires a token that matches the admin-token Modal "
+                "secret. See README for setup."
+            ))
         if not body.confirm:
             raise HTTPException(400, "Ingestion requires confirm=true")
         from ensemble.cloud_lib.ingest import ingest_corpus

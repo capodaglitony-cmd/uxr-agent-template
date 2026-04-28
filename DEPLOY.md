@@ -108,17 +108,45 @@ git commit -m "Add my corpus"
 git push
 ```
 
-Vercel will redeploy automatically. To trigger ingestion against your new files:
+Vercel will redeploy automatically (rebakes the corpus into the static bundle that Modal pulls on next deploy). To re-bake into Modal and re-embed into Qdrant:
 
 ```bash
-curl -X POST https://<your-project>.vercel.app/api/admin/ingest \
-  -H "Cookie: $(your-session-cookie)" \
-  -H "Content-Type: application/json"
+# Re-bake corpus into Modal image:
+cd backend && .venv/bin/modal deploy modal_app.py
+
+# Re-embed into Qdrant (requires the admin token from step 4 below):
+curl -X POST https://<your-modal-app-url>/admin/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Token: $(cat ~/.uxr-agent-admin-token)" \
+  -d '{"confirm":true}'
 ```
 
-Or visit `https://<your-project>.vercel.app/admin` in a browser, sign in with your GitHub account (matched against `OWNER_GITHUB_USER`), and click **Re-ingest corpus**.
-
 Ingest runs on Modal: chunks every doc, calls Voyage to embed, writes to your Qdrant collection. Takes ~30-90 seconds for a 50-doc portfolio.
+
+### 7a. Generate and store the admin token
+
+The `/admin/ingest` route on Modal is gated by an `X-Admin-Token` header. The Modal endpoint URL is publicly knowable (it appears in deployment output), so without this gate anyone could trigger Voyage embedding cost on your card.
+
+One-time setup:
+
+```bash
+# Generate a random 32-byte URL-safe token, save to a local file (chmod 600),
+# and register it as a Modal secret in a single shell pipeline so the token
+# never appears in your shell history.
+TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+echo "$TOKEN" > ~/.uxr-agent-admin-token
+chmod 600 ~/.uxr-agent-admin-token
+cd backend && .venv/bin/modal secret create admin-token ADMIN_TOKEN="$TOKEN"
+unset TOKEN
+```
+
+When you need to call `/admin/ingest`, read it back from the file:
+
+```bash
+curl ... -H "X-Admin-Token: $(cat ~/.uxr-agent-admin-token)" ...
+```
+
+Future v0.4 will replace this with GitHub OAuth on a `/admin` page in the Vercel app. For v0.3 the token gate is the working mitigation.
 
 ## 8. You're live
 
