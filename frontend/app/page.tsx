@@ -3,16 +3,33 @@
 import { useState } from "react";
 import { ModeToggle, type Mode } from "./components/ModeToggle";
 import { WizardView } from "./components/WizardView";
+import { FastView } from "./components/FastView";
+import { DeepView } from "./components/DeepView";
 
 const MODE_HINTS: Record<Mode, string> = {
-  fast: "Fast: ~3s conversational answer · v0.3",
-  deep: "Deep: ~25s three-persona ensemble synthesis · v0.3",
+  fast: "Fast: ~3-5s single Anthropic call · Enter to send",
+  deep: "Deep: ~25-35s three-persona ensemble + SME synthesis · Enter to send",
   wizard: "Wizard: research proposal cascade · click pills or type to advance",
 };
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("wizard");
-  const [deepPrefill, setDeepPrefill] = useState("");
+  const [crossModePrefill, setCrossModePrefill] = useState<{
+    target: Mode;
+    text: string;
+  } | null>(null);
+
+  function switchToDeep(decision: string) {
+    setCrossModePrefill({ target: "deep", text: decision });
+    setMode("deep");
+  }
+
+  // Pull prefill only when matching this render's mode, then clear it so
+  // user-typed text isn't overwritten on next render.
+  const prefillForCurrent =
+    crossModePrefill && crossModePrefill.target === mode
+      ? crossModePrefill.text
+      : undefined;
 
   return (
     <div className="flex flex-col h-screen bg-bg text-textmain">
@@ -36,16 +53,9 @@ export default function Home() {
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
-        {mode === "wizard" ? (
-          <WizardView
-            onSwitchToDeep={(decision) => {
-              setDeepPrefill(decision);
-              setMode("deep");
-            }}
-          />
-        ) : (
-          <ModePlaceholder mode={mode} prefill={mode === "deep" ? deepPrefill : ""} />
-        )}
+        {mode === "wizard" && <WizardView onSwitchToDeep={switchToDeep} />}
+        {mode === "fast" && <FastView initialPrompt={prefillForCurrent} />}
+        {mode === "deep" && <DeepView initialPrompt={prefillForCurrent} />}
       </main>
 
       {/* Footer with mode toggle */}
@@ -53,41 +63,6 @@ export default function Home() {
         <ModeToggle active={mode} onChange={setMode} />
         <div className="text-[11px] font-mono text-textdim">{MODE_HINTS[mode]}</div>
       </footer>
-    </div>
-  );
-}
-
-function ModePlaceholder({ mode, prefill }: { mode: Mode; prefill: string }) {
-  const lines: Record<Exclude<Mode, "wizard">, { title: string; body: string }> = {
-    fast: {
-      title: "Fast mode",
-      body:
-        "Single-call streaming Q&A against the corpus. Coming in v0.3 — for now, deploy the Modal backend and hit /generate via curl.",
-    },
-    deep: {
-      title: "Deep mode",
-      body:
-        "Three-persona ensemble (PM / Designer / Engineer) with divergence-band classification, anti-hallucination drops, and SME synthesis. Coming in v0.3 — for now, deploy the Modal backend and POST to /ensemble.",
-    },
-  } as const;
-
-  const m = lines[mode as Exclude<Mode, "wizard">];
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full px-6 text-center max-w-xl mx-auto">
-      <div className="text-textmuted font-mono text-[11px] uppercase tracking-wider mb-3">
-        {m.title}
-      </div>
-      <p className="text-textmain text-[14px] leading-relaxed mb-4">{m.body}</p>
-      {prefill && (
-        <div className="bg-surface2 border border-border1 rounded p-3 text-[12px] text-textmuted font-mono w-full">
-          <div className="text-textdim text-[10px] mb-1">prefilled question:</div>
-          {prefill}
-        </div>
-      )}
-      <div className="mt-6 text-[11px] text-textdim">
-        Wizard mode is fully wired in v0.2 · switch to it via the toggle below.
-      </div>
     </div>
   );
 }
