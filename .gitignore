@@ -4,7 +4,8 @@
 !.env.example
 *.key
 *.pem
-config/profile.yaml          # forks customize this; example checked in instead
+# Forks customize profile.yaml locally; the example stays in git as the template.
+config/profile.yaml
 
 # Python
 __pycache__/
