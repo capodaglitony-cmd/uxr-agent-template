@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: theme("colors.bg");
+  color: theme("colors.textmain");
+  font-family: theme("fontFamily.sans");
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: theme("colors.border2");
+  border-radius: 3px;
+}
+
+/* ── Markdown rendered into the proposal pane ───────────────────────── */
+.proposal-md {
+  font-size: 13px;
+  line-height: 1.7;
+  color: theme("colors.textmain");
+}
+.proposal-md h1 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: theme("colors.textmain");
+}
+.proposal-md h2 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  color: theme("colors.accent-bright");
+}
+.proposal-md p {
+  margin: 6px 0;
+}
+.proposal-md em {
+  color: theme("colors.textmuted");
+  font-style: italic;
+}
+.proposal-md strong {
+  font-weight: 600;
+  color: theme("colors.textmain");
+}
+.proposal-md ul {
+  margin: 4px 0 6px 18px;
+}
+.proposal-md li {
+  margin: 2px 0;
+}

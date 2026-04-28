@@ -1,0 +1,32 @@
+{
+  "name": "uxr-agent-template-frontend",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Next.js frontend for the uxr-agent-template Wizard mode + persona ensemble",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.5.15",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    "autoprefixer": "10.4.20",
+    "eslint": "9.39.4",
+    "eslint-config-next": "15.5.15",
+    "postcss": "8.5.10",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.7.2"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
