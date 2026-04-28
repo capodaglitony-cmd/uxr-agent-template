@@ -73,13 +73,40 @@ Or click the Vercel "Import Git Repository" button and pick your fork.
 When Vercel prompts for environment variables, set:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...
-VOYAGE_API_KEY=pa-...
-QDRANT_URL=https://....qdrant.cloud
-QDRANT_API_KEY=...
+# Modal backend wiring
 MODAL_ENDPOINT=https://...modal.run    # from step 4
-OWNER_GITHUB_USER=your-github-handle    # gates /admin to your account only
+ADMIN_TOKEN=<same value as admin-token Modal secret from step 7a>
+
+# GitHub OAuth gate on /admin (see step 5a below to set up the OAuth App)
+OWNER_GITHUB_USER=your-github-handle
+AUTH_SECRET=<random; generate with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`>
+AUTH_GITHUB_ID=<from your GitHub OAuth App>
+AUTH_GITHUB_SECRET=<from your GitHub OAuth App>
 ```
+
+> Note: the practitioner-side API keys (Anthropic, Voyage, Qdrant) live as Modal secrets, not Vercel env vars. The Vercel side only needs to know how to reach Modal and how to gate `/admin`.
+
+### 5a. Create a GitHub OAuth App
+
+The `/admin` page is gated by GitHub OAuth. One-time setup:
+
+1. Go to <https://github.com/settings/developers> → **OAuth Apps** → **New OAuth App**
+2. Fill in:
+   - **Application name**: `<your-handle> uxr-agent` (e.g., `tonycap uxr-agent`)
+   - **Homepage URL**: your Vercel deployment URL (e.g., `https://tc-uxragent.vercel.app`)
+   - **Authorization callback URL**: `https://<your-vercel-deployment>.vercel.app/api/auth/callback/github`
+     - For local dev, also add `http://localhost:3000/api/auth/callback/github` as a second callback URL
+3. Click **Register application**
+4. Copy the **Client ID** → set as `AUTH_GITHUB_ID` in Vercel
+5. Click **Generate a new client secret** → copy → set as `AUTH_GITHUB_SECRET` in Vercel
+
+Generate `AUTH_SECRET` separately:
+
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+Set it as `AUTH_SECRET` in Vercel.
 
 After the first deploy succeeds, **rename the Vercel project** if you want a portfolio-friendly URL. Project Settings → General → Project Name. Setting it to `yn-uxragent` gives you `yn-uxragent.vercel.app`. (Defaults to your repo name if you don't change it.)
 
@@ -108,13 +135,19 @@ git commit -m "Add my corpus"
 git push
 ```
 
-Vercel will redeploy automatically (rebakes the corpus into the static bundle that Modal pulls on next deploy). To re-bake into Modal and re-embed into Qdrant:
+Vercel auto-redeploys the frontend on every push, but the corpus lives in the **Modal image** — you have to re-bake the image whenever corpus content changes:
 
 ```bash
-# Re-bake corpus into Modal image:
 cd backend && .venv/bin/modal deploy modal_app.py
+```
 
-# Re-embed into Qdrant (requires the admin token from step 4 below):
+Then re-embed into Qdrant. Two paths:
+
+**Path A — admin panel (recommended).** Open `https://<your-vercel-deployment>.vercel.app/admin` in a browser, sign in with GitHub (must match `OWNER_GITHUB_USER`), click **Re-ingest corpus**. The Vercel server-side route attaches the `X-Admin-Token` and forwards to Modal — your browser never sees the token.
+
+**Path B — direct curl** (if you prefer the CLI):
+
+```bash
 curl -X POST https://<your-modal-app-url>/admin/ingest \
   -H "Content-Type: application/json" \
   -H "X-Admin-Token: $(cat ~/.uxr-agent-admin-token)" \
