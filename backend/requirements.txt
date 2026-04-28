@@ -6,7 +6,8 @@ pydantic==2.9.2
 uvicorn==0.31.0
 
 # LLM provider — Anthropic Claude (personas + SME synthesis).
-anthropic==0.39.0
+# 0.42+ required: 0.39 used the httpx `proxies` kwarg removed in httpx 0.28.
+anthropic==0.42.0
 
 # Embedding provider — Voyage AI voyage-3 (locked in cloud spec v0.1.2).
 voyageai==0.2.4

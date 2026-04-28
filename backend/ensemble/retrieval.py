@@ -164,6 +164,41 @@ def retrieve(
         expansion_cap: optional ceiling on total chunks after graph expansion
     """
     start = time.time()
+
+    # Cloud path: query Qdrant directly via cloud_lib if QDRANT_URL is set.
+    # Local lab path: fall back to HTTP proxy (preserves source pattern).
+    if os.environ.get("QDRANT_URL"):
+        try:
+            from .cloud_lib.qdrant_retriever import query_qdrant
+            chunks_data = query_qdrant(query, top_k=top_k)
+        except Exception as e:
+            return RetrievalResult(
+                chunks=[], strategy_used=strategy,
+                expansion_applied=(graph_hops > 0),
+                elapsed_seconds=round(time.time() - start, 2),
+                error=f"Qdrant query failed: {e}",
+            )
+        chunks = []
+        for c in chunks_data:
+            chunks.append(Chunk(
+                chunk_id=c.get("chunk_id", ""),
+                text=c.get("text", ""),
+                source=c.get("source", ""),
+                score=float(c.get("score", 0.0)),
+                collection=c.get("collection", "qdrant"),
+                metadata=c.get("metadata", {}),
+                vector_score=float(c.get("vector_score", 0.0)),
+                graph_score=float(c.get("graph_score", 0.0)),
+                score_pre_weight=float(c.get("score_pre_weight", 0.0)),
+                content_weight_applied=float(c.get("content_weight_applied", 1.0)),
+            ))
+        return RetrievalResult(
+            chunks=chunks, strategy_used=strategy,
+            expansion_applied=False,
+            elapsed_seconds=round(time.time() - start, 2),
+            error=None,
+        )
+
     endpoint = ENDPOINTS.get(strategy)
     if not endpoint:
         return RetrievalResult(

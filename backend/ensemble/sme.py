@@ -180,12 +180,23 @@ class SMESynthesizer:
     # ── LLM call (mirrors AnswererBase._call_llm pattern) ──────────────
 
     def _call_llm(self, prompt: str) -> Optional[str]:
-        """Call Qwen via Ollama. Returns raw text or None on failure.
-
-        Mirrors the AnswererBase._call_llm pattern so the proxy_server's
-        wiring and the ThreadingHTTPServer re-entrancy handling applies
-        identically.
+        """Call the LLM. Cloud path uses Anthropic SDK directly; local
+        lab path falls back to HTTP proxy (preserves source pattern).
+        Returns raw text or None on failure.
         """
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            try:
+                from anthropic import Anthropic
+                client = Anthropic()
+                msg = client.messages.create(
+                    model=self.model,
+                    max_tokens=2048,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return "".join(b.text for b in msg.content if hasattr(b, "text"))
+            except Exception as e:
+                print(f"[SME] Anthropic call failed: {e}")
+                return None
         try:
             resp = requests.post(
                 self.endpoint,

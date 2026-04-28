@@ -222,9 +222,29 @@ class AnswererBase(ABC):
 
     def _call_llm(self, prompt: str) -> Optional[str]:
         """
-        Call Qwen2.5 14B via Ollama. Scaffolding uses MM24 proxy; real
-        endpoint may differ. Returns raw text or None on failure.
+        Call the configured LLM. Two paths:
+          - Cloud (ANTHROPIC_API_KEY set): call Anthropic SDK directly.
+            No HTTP proxy hop. Uses the model named in OLLAMA_MODEL
+            (which is set from ANTHROPIC_MODEL env var, default
+            claude-sonnet-4-6).
+          - Local lab (no ANTHROPIC_API_KEY): POST to OLLAMA_ENDPOINT
+            and let the local proxy + Ollama handle it. Preserves the
+            source lab's pattern unchanged.
+        Returns raw text or None on failure.
         """
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            try:
+                from anthropic import Anthropic
+                client = Anthropic()
+                msg = client.messages.create(
+                    model=OLLAMA_MODEL,
+                    max_tokens=2048,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return "".join(b.text for b in msg.content if hasattr(b, "text"))
+            except Exception as e:
+                print(f"[{self.config.persona}] Anthropic call failed: {e}")
+                return None
         try:
             resp = requests.post(
                 OLLAMA_ENDPOINT,

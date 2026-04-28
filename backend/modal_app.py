@@ -164,7 +164,7 @@ def fastapi_app():
     @api.post("/retrieve/minilm")
     @api.post("/retrieve/graph")
     def retrieve(body: QueryBody):
-        from lib.qdrant_retriever import query_qdrant
+        from ensemble.cloud_lib.qdrant_retriever import query_qdrant
         try:
             chunks = query_qdrant(body.query, top_k=body.top_k)
         except Exception as e:
@@ -277,7 +277,7 @@ def fastapi_app():
         # X-Admin-Token header check here.
         if not body.confirm:
             raise HTTPException(400, "Ingestion requires confirm=true")
-        from lib.ingest import ingest_corpus
+        from ensemble.cloud_lib.ingest import ingest_corpus
         try:
             stats = ingest_corpus(corpus_dir="/root/corpus")
         except Exception as e:
